@@ -1,6 +1,8 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Check, TrendingDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const platforms = [
   { name: "MakeMyTrip", price: 2700, isTraeverly: false },
@@ -12,11 +14,16 @@ const platforms = [
 const PricingComparison = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const navigate = useNavigate();
 
   const maxPrice = Math.max(...platforms.map((p) => p.price));
 
+  const handleBookPlan = () => {
+    navigate("/auth");
+  };
+
   return (
-    <section className="py-24 bg-gradient-warm relative overflow-hidden" ref={ref}>
+    <section id="pricing" className="py-24 bg-gradient-warm relative overflow-hidden" ref={ref}>
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -left-32 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
@@ -112,9 +119,16 @@ const PricingComparison = () => {
               ))}
             </div>
 
-            <p className="text-center text-muted-foreground text-sm mt-8">
+            <p className="text-center text-muted-foreground text-sm mt-8 mb-6">
               * Prices are illustrative based on market data
             </p>
+
+            <div className="flex justify-center">
+              <Button variant="hero" size="xl" className="group" onClick={handleBookPlan}>
+                Book Your Plan
+                <Check className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              </Button>
+            </div>
           </div>
         </motion.div>
       </div>

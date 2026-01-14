@@ -2,10 +2,23 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Compass } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CTASection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const navigate = useNavigate();
+
+  const handleGetEarlyAccess = () => {
+    navigate("/auth");
+  };
+
+  const handleLearnMore = () => {
+    const featuresSection = document.getElementById("features");
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <section className="py-24 bg-background relative overflow-hidden" ref={ref}>
@@ -51,6 +64,7 @@ const CTASection = () => {
                 <Button
                   size="xl"
                   className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-elevated group"
+                  onClick={handleGetEarlyAccess}
                 >
                   Get Early Access
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -59,6 +73,7 @@ const CTASection = () => {
                   variant="glass"
                   size="xl"
                   className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                  onClick={handleLearnMore}
                 >
                   Learn More
                 </Button>

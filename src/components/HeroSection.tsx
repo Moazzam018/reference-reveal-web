@@ -1,9 +1,23 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-train.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const handleStartJourney = () => {
+    navigate("/auth");
+  };
+
+  const handleWatchDemo = () => {
+    const pricingSection = document.getElementById("pricing");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -56,7 +70,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <Button variant="hero" size="xl" className="group">
+            <Button variant="hero" size="xl" className="group" onClick={handleStartJourney}>
               Start Your Journey
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -64,6 +78,7 @@ const HeroSection = () => {
               variant="glass"
               size="xl"
               className="group"
+              onClick={handleWatchDemo}
             >
               <Play className="w-5 h-5" />
               Watch Demo

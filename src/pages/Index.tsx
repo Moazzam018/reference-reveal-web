@@ -10,10 +10,11 @@ import SocialMeetupsSection from "@/components/SocialMeetupsSection";
 import ShortReelsSection from "@/components/ShortReelsSection";
 import MemoryGallerySection from "@/components/MemoryGallerySection";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/instagram/BottomNav";
 
 const Index = () => {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pb-16">
       <Header />
       <HeroSection />
       <ProblemSection />
@@ -26,6 +27,7 @@ const Index = () => {
       <ShortReelsSection />
       <MemoryGallerySection />
       <Footer />
+      <BottomNav />
     </main>
   );
 };

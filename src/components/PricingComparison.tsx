@@ -19,7 +19,7 @@ const PricingComparison = () => {
   const maxPrice = Math.max(...platforms.map((p) => p.price));
 
   const handleBookPlan = () => {
-    navigate("/auth");
+    navigate("/book");
   };
 
   return (

@@ -1,1 +1,4 @@
 project_id = "quvxfhqawzubumdjovrt"
+
+[functions.budget-estimator]
+verify_jwt = false

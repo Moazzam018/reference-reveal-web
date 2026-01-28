@@ -1,27 +1,33 @@
 import { motion } from "framer-motion";
 import { Home, Search, PlusSquare, Film, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface BottomNavProps {
   onCreateClick?: () => void;
 }
 
 const BottomNav = ({ onCreateClick }: BottomNavProps) => {
-  const [active, setActive] = useState("home");
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const getActiveFromPath = () => {
+    const path = location.pathname;
+    if (path === "/") return "home";
+    if (path === "/book" || path === "/plan") return "search";
+    if (path === "/features") return "reels";
+    if (path === "/auth" || path === "/budget-estimator") return "profile";
+    return "home";
   };
 
+  const [active, setActive] = useState(getActiveFromPath());
+
   const navItems = [
-    { id: "home", icon: Home, label: "Home", action: () => window.scrollTo({ top: 0, behavior: "smooth" }) },
-    { id: "search", icon: Search, label: "Search", action: () => scrollToSection("transport") },
-    { id: "create", icon: PlusSquare, label: "Create", action: onCreateClick },
-    { id: "reels", icon: Film, label: "Reels", action: () => scrollToSection("reels") },
-    { id: "profile", icon: User, label: "Profile", action: () => scrollToSection("memories") },
+    { id: "home", icon: Home, label: "Home", action: () => navigate("/") },
+    { id: "search", icon: Search, label: "Search", action: () => navigate("/plan") },
+    { id: "create", icon: PlusSquare, label: "Create", action: onCreateClick || (() => navigate("/book")) },
+    { id: "reels", icon: Film, label: "Reels", action: () => navigate("/features") },
+    { id: "profile", icon: User, label: "Profile", action: () => navigate("/auth") },
   ];
 
   return (

@@ -25,10 +25,10 @@ const Header = () => {
   };
 
   const navLinks = [
-    { label: "Features", href: "#features" },
-    { label: "How it Works", href: "#how-it-works" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "About", href: "#about" },
+    { label: "Features", href: "/features" },
+    { label: "Transport", href: "/transport" },
+    { label: "Meetups", href: "/meetups" },
+    { label: "Reels", href: "/reels" },
   ];
 
   return (
@@ -54,13 +54,13 @@ const Header = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a
+            <button
               key={link.label}
-              href={link.href}
+              onClick={() => navigate(link.href)}
               className="text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium animated-underline"
             >
               {link.label}
-            </a>
+            </button>
           ))}
         </nav>
 
@@ -113,14 +113,16 @@ const Header = () => {
           >
             <nav className="container mx-auto px-4 py-6 flex flex-col gap-4">
               {navLinks.map((link) => (
-                <a
+                <button
                   key={link.label}
-                  href={link.href}
-                  className="text-foreground hover:text-primary transition-colors duration-200 font-medium py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    navigate(link.href);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-foreground hover:text-primary transition-colors duration-200 font-medium py-2 text-left"
                 >
                   {link.label}
-                </a>
+                </button>
               ))}
               <div className="flex flex-col gap-3 pt-4 border-t border-border">
                 {user ? (

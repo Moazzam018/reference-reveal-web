@@ -10,6 +10,11 @@ import TripPlanner from "./pages/TripPlanner";
 import BudgetEstimator from "./pages/BudgetEstimator";
 import BookTrip from "./pages/BookTrip";
 import Features from "./pages/Features";
+import Transport from "./pages/Transport";
+import Meetups from "./pages/Meetups";
+import Reels from "./pages/Reels";
+import Memories from "./pages/Memories";
+import CreatePost from "./pages/CreatePost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +33,11 @@ const App = () => (
             <Route path="/budget-estimator" element={<BudgetEstimator />} />
             <Route path="/book" element={<BookTrip />} />
             <Route path="/features" element={<Features />} />
+            <Route path="/transport" element={<Transport />} />
+            <Route path="/meetups" element={<Meetups />} />
+            <Route path="/reels" element={<Reels />} />
+            <Route path="/memories" element={<Memories />} />
+            <Route path="/create" element={<CreatePost />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

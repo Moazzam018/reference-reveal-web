@@ -1,6 +1,8 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { CalendarDays, Camera, Users, Film, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { CalendarDays, Camera, Users, Film, Check, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import jaipurImage from "@/assets/jaipur-palace.jpg";
 import keralaImage from "@/assets/kerala-backwaters.jpg";
 import meetupImage from "@/assets/travelers-meetup.jpg";
@@ -19,6 +21,7 @@ const features = [
     ],
     image: jaipurImage,
     gradient: "from-primary to-accent",
+    link: "/transport",
   },
   {
     icon: Camera,
@@ -33,6 +36,7 @@ const features = [
     ],
     image: keralaImage,
     gradient: "from-secondary to-primary",
+    link: "/memories",
   },
   {
     icon: Users,
@@ -47,6 +51,7 @@ const features = [
     ],
     image: meetupImage,
     gradient: "from-accent to-secondary",
+    link: "/meetups",
   },
   {
     icon: Film,
@@ -61,12 +66,14 @@ const features = [
     ],
     image: keralaImage,
     gradient: "from-primary to-secondary",
+    link: "/reels",
   },
 ];
 
 const FeaturesSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const navigate = useNavigate();
 
   return (
     <section
@@ -140,7 +147,7 @@ const FeaturesSection = () => {
                 <p className="text-muted-foreground text-lg leading-relaxed mb-8">
                   {feature.description}
                 </p>
-                <ul className="space-y-4">
+                <ul className="space-y-4 mb-8">
                   {feature.points.map((point, pointIndex) => (
                     <li
                       key={pointIndex}
@@ -153,6 +160,14 @@ const FeaturesSection = () => {
                     </li>
                   ))}
                 </ul>
+                <Button
+                  variant="hero"
+                  onClick={() => navigate(feature.link)}
+                  className="group"
+                >
+                  Explore {feature.title}
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
               </div>
             </motion.div>
           ))}

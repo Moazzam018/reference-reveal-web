@@ -8,14 +8,11 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const handleStartJourney = () => {
-    navigate("/auth");
+    navigate("/plan");
   };
 
   const handleWatchDemo = () => {
-    const pricingSection = document.getElementById("pricing");
-    if (pricingSection) {
-      pricingSection.scrollIntoView({ behavior: "smooth" });
-    }
+    navigate("/features");
   };
 
   return (

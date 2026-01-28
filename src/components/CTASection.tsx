@@ -10,14 +10,11 @@ const CTASection = () => {
   const navigate = useNavigate();
 
   const handleGetEarlyAccess = () => {
-    navigate("/auth");
+    navigate("/plan");
   };
 
   const handleLearnMore = () => {
-    const featuresSection = document.getElementById("features");
-    if (featuresSection) {
-      featuresSection.scrollIntoView({ behavior: "smooth" });
-    }
+    navigate("/features");
   };
 
   return (

@@ -1,33 +1,29 @@
 import { motion } from "framer-motion";
 import { Home, Search, PlusSquare, Film, User } from "lucide-react";
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-interface BottomNavProps {
-  onCreateClick?: () => void;
-}
-
-const BottomNav = ({ onCreateClick }: BottomNavProps) => {
+const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
   const getActiveFromPath = () => {
     const path = location.pathname;
-    if (path === "/") return "home";
-    if (path === "/book" || path === "/plan") return "search";
-    if (path === "/features") return "reels";
-    if (path === "/auth" || path === "/budget-estimator") return "profile";
+    if (path === "/" || path === "/features") return "home";
+    if (path === "/transport" || path === "/plan" || path === "/book") return "search";
+    if (path === "/create") return "create";
+    if (path === "/reels") return "reels";
+    if (path === "/auth" || path === "/memories" || path === "/meetups" || path === "/budget-estimator") return "profile";
     return "home";
   };
 
-  const [active, setActive] = useState(getActiveFromPath());
+  const active = getActiveFromPath();
 
   const navItems = [
-    { id: "home", icon: Home, label: "Home", action: () => navigate("/") },
-    { id: "search", icon: Search, label: "Search", action: () => navigate("/plan") },
-    { id: "create", icon: PlusSquare, label: "Create", action: onCreateClick || (() => navigate("/book")) },
-    { id: "reels", icon: Film, label: "Reels", action: () => navigate("/features") },
-    { id: "profile", icon: User, label: "Profile", action: () => navigate("/auth") },
+    { id: "home", icon: Home, label: "Home", path: "/" },
+    { id: "search", icon: Search, label: "Search", path: "/transport" },
+    { id: "create", icon: PlusSquare, label: "Create", path: "/create" },
+    { id: "reels", icon: Film, label: "Reels", path: "/reels" },
+    { id: "profile", icon: User, label: "Profile", path: "/memories" },
   ];
 
   return (
@@ -41,10 +37,7 @@ const BottomNav = ({ onCreateClick }: BottomNavProps) => {
           <motion.button
             key={item.id}
             whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              setActive(item.id);
-              item.action?.();
-            }}
+            onClick={() => navigate(item.path)}
             className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${
               active === item.id ? "text-foreground" : "text-muted-foreground"
             }`}

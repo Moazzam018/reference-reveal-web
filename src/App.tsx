@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import TripPlanner from "./pages/TripPlanner";
@@ -34,10 +35,22 @@ const App = () => (
             <Route path="/book" element={<BookTrip />} />
             <Route path="/features" element={<Features />} />
             <Route path="/transport" element={<Transport />} />
-            <Route path="/meetups" element={<Meetups />} />
+            <Route path="/meetups" element={
+              <ProtectedRoute>
+                <Meetups />
+              </ProtectedRoute>
+            } />
             <Route path="/reels" element={<Reels />} />
-            <Route path="/memories" element={<Memories />} />
-            <Route path="/create" element={<CreatePost />} />
+            <Route path="/memories" element={
+              <ProtectedRoute>
+                <Memories />
+              </ProtectedRoute>
+            } />
+            <Route path="/create" element={
+              <ProtectedRoute>
+                <CreatePost />
+              </ProtectedRoute>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

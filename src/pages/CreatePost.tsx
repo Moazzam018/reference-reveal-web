@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft,
   Image as ImageIcon,
   Video,
   Users,
@@ -19,19 +18,29 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/instagram/BottomNav";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type PostType = "photo" | "reel" | "meetup" | "ai";
 
 const CreatePost = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [postType, setPostType] = useState<PostType>("photo");
   const [caption, setCaption] = useState("");
   const [location, setLocation] = useState("");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isPosting, setIsPosting] = useState(false);
+
+  // Meetup fields
+  const [meetupTitle, setMeetupTitle] = useState("");
+  const [meetupDate, setMeetupDate] = useState("");
+  const [meetupTime, setMeetupTime] = useState("");
+  const [meetupDescription, setMeetupDescription] = useState("");
 
   const postTypes = [
     { id: "photo" as PostType, icon: ImageIcon, label: "Photo", color: "bg-pink-500" },
@@ -40,17 +49,6 @@ const CreatePost = () => {
     { id: "ai" as PostType, icon: Sparkles, label: "AI Image", color: "bg-gradient-to-r from-pink-500 to-purple-500" },
   ];
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleGenerateAI = async () => {
     if (!aiPrompt.trim()) {
       toast({ title: "Please enter a prompt", variant: "destructive" });
@@ -58,16 +56,102 @@ const CreatePost = () => {
     }
 
     setIsGenerating(true);
-    // Simulate AI generation
+    // Simulate AI generation - in production, this would call an actual AI service
     await new Promise(resolve => setTimeout(resolve, 3000));
     setGeneratedImage("https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600");
     setIsGenerating(false);
     toast({ title: "AI image generated! ✨" });
   };
 
-  const handlePost = () => {
-    toast({ title: "Posted successfully! 🎉" });
-    navigate(-1);
+  const handlePost = async () => {
+    if (!user) {
+      toast({ title: "Please log in to post", variant: "destructive" });
+      return;
+    }
+
+    setIsPosting(true);
+
+    try {
+      if (postType === "photo") {
+        if (!imageUrl) {
+          toast({ title: "Please add an image URL", variant: "destructive" });
+          setIsPosting(false);
+          return;
+        }
+        await supabase.from("posts").insert({
+          user_id: user.id,
+          image_url: imageUrl,
+          caption: caption || null,
+          location: location || null,
+        });
+        toast({ title: "Photo posted! 📸" });
+      } else if (postType === "reel") {
+        if (!imageUrl) {
+          toast({ title: "Please add a video/thumbnail URL", variant: "destructive" });
+          setIsPosting(false);
+          return;
+        }
+        await supabase.from("reels").insert({
+          user_id: user.id,
+          thumbnail_url: imageUrl,
+          caption: caption || null,
+          song: "Original Audio",
+        });
+        toast({ title: "Reel posted! 🎬" });
+      } else if (postType === "meetup") {
+        if (!meetupTitle || !location || !meetupDate) {
+          toast({ title: "Please fill in all required fields", variant: "destructive" });
+          setIsPosting(false);
+          return;
+        }
+        const { data: meetupData, error } = await supabase.from("meetups").insert({
+          user_id: user.id,
+          title: meetupTitle,
+          location: location,
+          date: meetupDate,
+          time: meetupTime || null,
+          description: meetupDescription || null,
+          image_url: imageUrl || null,
+          attendees_count: 1,
+        }).select().single();
+
+        if (!error && meetupData) {
+          await supabase.from("meetup_attendees").insert({
+            user_id: user.id,
+            meetup_id: meetupData.id,
+          });
+        }
+        toast({ title: "Meetup created! 🎉" });
+      } else if (postType === "ai") {
+        if (!generatedImage) {
+          toast({ title: "Please generate an image first", variant: "destructive" });
+          setIsPosting(false);
+          return;
+        }
+        await supabase.from("memories").insert({
+          user_id: user.id,
+          image_url: generatedImage,
+          title: caption || "AI Generated Memory",
+          description: aiPrompt,
+          is_ai_generated: true,
+        });
+        toast({ title: "AI memory saved! ✨" });
+      }
+
+      navigate(-1);
+    } catch (error) {
+      console.error("Error posting:", error);
+      toast({ title: "Failed to post", variant: "destructive" });
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  const canPost = () => {
+    if (postType === "photo" || postType === "reel") return !!imageUrl;
+    if (postType === "meetup") return !!meetupTitle && !!location && !!meetupDate;
+    if (postType === "ai") return !!generatedImage;
+    return false;
   };
 
   return (
@@ -85,9 +169,9 @@ const CreatePost = () => {
             size="sm"
             variant="hero"
             onClick={handlePost}
-            disabled={!selectedImage && !generatedImage && postType !== "meetup"}
+            disabled={!canPost() || isPosting}
           >
-            <Send className="w-4 h-4 mr-1" />
+            {isPosting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
             Post
           </Button>
         </div>
@@ -123,42 +207,44 @@ const CreatePost = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            {/* Image Preview/Upload */}
-            <div className="relative">
-              {selectedImage ? (
-                <div className="relative aspect-square rounded-2xl overflow-hidden">
-                  <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70"
-                    onClick={() => setSelectedImage(null)}
-                  >
-                    <X className="w-5 h-5" />
-                  </Button>
-                </div>
-              ) : (
-                <label className="block aspect-square border-2 border-dashed border-border rounded-2xl cursor-pointer hover:border-primary transition-colors">
-                  <div className="h-full flex flex-col items-center justify-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Camera className="w-8 h-8 text-primary" />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-medium">Tap to upload</p>
-                      <p className="text-sm text-muted-foreground">
-                        {postType === "photo" ? "Photos" : "Videos"} up to 50MB
-                      </p>
-                    </div>
-                  </div>
-                  <input
-                    type="file"
-                    accept={postType === "photo" ? "image/*" : "video/*"}
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
-                </label>
-              )}
+            {/* Image URL Input */}
+            <div className="space-y-2">
+              <Label>Image URL</Label>
+              <Input
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+              />
             </div>
+
+            {/* Image Preview */}
+            {imageUrl && (
+              <div className="relative aspect-square rounded-2xl overflow-hidden">
+                <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70"
+                  onClick={() => setImageUrl("")}
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            )}
+
+            {!imageUrl && (
+              <div className="aspect-square border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-primary" />
+                </div>
+                <div className="text-center">
+                  <p className="font-medium">Enter image URL above</p>
+                  <p className="text-sm text-muted-foreground">
+                    {postType === "photo" ? "Photos" : "Video thumbnails"}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Caption */}
             <div className="space-y-2">
@@ -269,30 +355,62 @@ const CreatePost = () => {
             className="space-y-6"
           >
             <div className="space-y-2">
-              <Label>Meetup Title</Label>
-              <Input placeholder="Backpackers meetup in Goa..." />
+              <Label>Meetup Title *</Label>
+              <Input
+                placeholder="Backpackers meetup in Goa..."
+                value={meetupTitle}
+                onChange={(e) => setMeetupTitle(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Location</Label>
-              <Input placeholder="Anjuna Beach, Goa" />
+              <Label>Location *</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Anjuna Beach, Goa"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Date & Time</Label>
-              <Input type="datetime-local" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Date *</Label>
+                <Input
+                  type="date"
+                  value={meetupDate}
+                  onChange={(e) => setMeetupDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Time</Label>
+                <Input
+                  type="time"
+                  value={meetupTime}
+                  onChange={(e) => setMeetupTime(e.target.value)}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Description</Label>
-              <Textarea placeholder="What's the plan? What should people bring?" rows={4} />
+              <Textarea
+                placeholder="What's the plan? What should people bring?"
+                value={meetupDescription}
+                onChange={(e) => setMeetupDescription(e.target.value)}
+                rows={4}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Cover Photo (Optional)</Label>
-              <label className="block h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary transition-colors">
-                <div className="h-full flex items-center justify-center gap-2 text-muted-foreground">
-                  <ImageIcon className="w-5 h-5" />
-                  <span>Add cover photo</span>
-                </div>
-                <input type="file" accept="image/*" className="hidden" />
-              </label>
+              <Label>Cover Photo URL (Optional)</Label>
+              <Input
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+              />
+              {imageUrl && (
+                <img src={imageUrl} alt="Cover preview" className="w-full h-32 object-cover rounded-xl" />
+              )}
             </div>
           </motion.div>
         )}

@@ -163,7 +163,7 @@ export default {
   					transform: 'translateX(0)'
   				}
   			},
-  			'float': {
+  			float: {
   				'0%, 100%': {
   					transform: 'translateY(0)'
   				},
@@ -187,7 +187,7 @@ export default {
   			'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
   			'scale-in': 'scale-in 0.5s ease-out forwards',
   			'slide-in-right': 'slide-in-right 0.6s ease-out forwards',
-  			'float': 'float 6s ease-in-out infinite',
+  			float: 'float 6s ease-in-out infinite',
   			'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
   		},
   		boxShadow: {

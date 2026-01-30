@@ -67,16 +67,50 @@ const BudgetEstimator = () => {
   const [streamedResponse, setStreamedResponse] = useState("");
 
   const destinations = [
-    { id: "delhi", name: "Delhi" },
-    { id: "mumbai", name: "Mumbai" },
-    { id: "jaipur", name: "Jaipur" },
-    { id: "goa", name: "Goa" },
-    { id: "kerala", name: "Kerala" },
-    { id: "varanasi", name: "Varanasi" },
-    { id: "agra", name: "Agra" },
-    { id: "udaipur", name: "Udaipur" },
-    { id: "manali", name: "Manali" },
-    { id: "rishikesh", name: "Rishikesh" },
+    // Major Cities
+    { id: "delhi", name: "Delhi", category: "city" },
+    { id: "mumbai", name: "Mumbai", category: "city" },
+    { id: "bengaluru", name: "Bengaluru", category: "city" },
+    { id: "kolkata", name: "Kolkata", category: "city" },
+    { id: "chennai", name: "Chennai", category: "city" },
+    { id: "hyderabad", name: "Hyderabad", category: "city" },
+    // Rajasthan
+    { id: "jaipur", name: "Jaipur", category: "heritage" },
+    { id: "udaipur", name: "Udaipur", category: "heritage" },
+    { id: "jodhpur", name: "Jodhpur", category: "heritage" },
+    { id: "jaisalmer", name: "Jaisalmer", category: "heritage" },
+    { id: "pushkar", name: "Pushkar", category: "heritage" },
+    // Hill Stations
+    { id: "manali", name: "Manali", category: "hill" },
+    { id: "shimla", name: "Shimla", category: "hill" },
+    { id: "darjeeling", name: "Darjeeling", category: "hill" },
+    { id: "ooty", name: "Ooty", category: "hill" },
+    { id: "munnar", name: "Munnar", category: "hill" },
+    { id: "nainital", name: "Nainital", category: "hill" },
+    { id: "kodaikanal", name: "Kodaikanal", category: "hill" },
+    { id: "mussoorie", name: "Mussoorie", category: "hill" },
+    // Spiritual
+    { id: "varanasi", name: "Varanasi", category: "spiritual" },
+    { id: "rishikesh", name: "Rishikesh", category: "spiritual" },
+    { id: "amritsar", name: "Amritsar", category: "spiritual" },
+    { id: "haridwar", name: "Haridwar", category: "spiritual" },
+    // Beaches
+    { id: "goa", name: "Goa", category: "beach" },
+    { id: "kerala", name: "Kerala", category: "beach" },
+    { id: "andaman", name: "Andaman", category: "beach" },
+    { id: "pondicherry", name: "Pondicherry", category: "beach" },
+    { id: "varkala", name: "Varkala", category: "beach" },
+    // Adventure
+    { id: "leh-ladakh", name: "Leh Ladakh", category: "adventure" },
+    { id: "srinagar", name: "Srinagar", category: "adventure" },
+    { id: "gangtok", name: "Gangtok", category: "adventure" },
+    { id: "coorg", name: "Coorg", category: "adventure" },
+    { id: "kasol", name: "Kasol", category: "adventure" },
+    { id: "mcleodganj", name: "Mcleodganj", category: "adventure" },
+    // Heritage
+    { id: "agra", name: "Agra", category: "heritage" },
+    { id: "mysore", name: "Mysore", category: "heritage" },
+    { id: "hampi", name: "Hampi", category: "heritage" },
   ];
 
   const estimateBudget = async () => {
@@ -201,11 +235,30 @@ const BudgetEstimator = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Where are you going?" />
                 </SelectTrigger>
-                <SelectContent>
-                  {destinations.map((dest) => (
-                    <SelectItem key={dest.id} value={dest.id}>
-                      {dest.name}
-                    </SelectItem>
+                <SelectContent className="max-h-[300px]">
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Major Cities</div>
+                  {destinations.filter(d => d.category === "city").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Beaches & Backwaters</div>
+                  {destinations.filter(d => d.category === "beach").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Hill Stations</div>
+                  {destinations.filter(d => d.category === "hill").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Adventure</div>
+                  {destinations.filter(d => d.category === "adventure").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Heritage</div>
+                  {destinations.filter(d => d.category === "heritage").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Spiritual</div>
+                  {destinations.filter(d => d.category === "spiritual").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -6,116 +6,149 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Real Indian city cost data (INR per month for living costs)
-const CITY_COSTS: Record<string, { rent: number; food: number; safety: number }> = {
-  "Mumbai": { rent: 34896, food: 6196, safety: 2.7 },
-  "Delhi": { rent: 26424, food: 4487, safety: 2.6 },
-  "Bengaluru": { rent: 26667, food: 6936, safety: 6.7 },
-  "Bangalore": { rent: 26667, food: 6936, safety: 6.7 },
-  "Hyderabad": { rent: 25785, food: 6375, safety: 7.7 },
-  "Chennai": { rent: 21323, food: 6389, safety: 4.0 },
-  "Kolkata": { rent: 25710, food: 4525, safety: 4.7 },
-  "Pune": { rent: 33540, food: 6563, safety: 6.0 },
-  "Jaipur": { rent: 8774, food: 6625, safety: 6.7 },
-  "Ahmedabad": { rent: 20881, food: 3632, safety: 7.9 },
-  "Lucknow": { rent: 10047, food: 4676, safety: 6.2 },
-  "Varanasi": { rent: 5212, food: 3349, safety: 3.3 },
-  "Agra": { rent: 8137, food: 6470, safety: 7.6 },
-  "Udaipur": { rent: 4369, food: 4887, safety: 3.2 },
-  "Goa": { rent: 15000, food: 5500, safety: 6.5 },
-  "Kerala": { rent: 8985, food: 7843, safety: 7.1 },
-  "Manali": { rent: 6000, food: 4500, safety: 7.0 },
-  "Rishikesh": { rent: 5000, food: 3500, safety: 6.5 },
-  "Shimla": { rent: 7000, food: 5000, safety: 7.5 },
-  "Darjeeling": { rent: 6000, food: 4800, safety: 7.0 },
-  "Srinagar": { rent: 9118, food: 3320, safety: 5.1 },
-  "Jodhpur": { rent: 6343, food: 5154, safety: 3.9 },
-  "Amritsar": { rent: 6676, food: 3388, safety: 8.2 },
-  "Mysuru": { rent: 4578, food: 5648, safety: 4.5 },
-  "Mysore": { rent: 4578, food: 5648, safety: 4.5 },
-  "Chandigarh": { rent: 17284, food: 6337, safety: 5.3 },
-  "Kochi": { rent: 8343, food: 7878, safety: 8.2 },
-  "Gangtok": { rent: 5403, food: 7405, safety: 8.7 },
-  "Dehradun": { rent: 4151, food: 6937, safety: 5.5 },
-  "Coorg": { rent: 6000, food: 5000, safety: 7.5 },
-  "Munnar": { rent: 5000, food: 4500, safety: 7.8 },
-  "Ooty": { rent: 5500, food: 4200, safety: 7.2 },
-  "Andaman": { rent: 12000, food: 6500, safety: 8.0 },
-  "Leh": { rent: 8000, food: 5500, safety: 7.5 },
-  "Ladakh": { rent: 8000, food: 5500, safety: 7.5 },
-  "Leh Ladakh": { rent: 8000, food: 5500, safety: 7.5 },
-  "Jaisalmer": { rent: 5000, food: 4000, safety: 7.0 },
-  "Pushkar": { rent: 4000, food: 3500, safety: 6.8 },
-  "Hampi": { rent: 4000, food: 3000, safety: 7.0 },
-  "Alleppey": { rent: 6000, food: 5000, safety: 7.5 },
-  "Varkala": { rent: 5000, food: 4500, safety: 7.2 },
-  "Kasol": { rent: 4500, food: 3800, safety: 6.0 },
-  "Mcleodganj": { rent: 5000, food: 4000, safety: 7.0 },
-  "Dharamshala": { rent: 5500, food: 4200, safety: 7.2 },
-  "Nainital": { rent: 6000, food: 4500, safety: 7.5 },
-  "Kodaikanal": { rent: 5500, food: 4200, safety: 7.0 },
-  "Mahabaleshwar": { rent: 6000, food: 4800, safety: 7.3 },
-  "Lonavala": { rent: 7000, food: 5000, safety: 6.8 },
-  "Pondicherry": { rent: 5954, food: 4414, safety: 3.2 },
-  "Ranthambore": { rent: 5000, food: 4000, safety: 7.0 },
-  "Jim Corbett": { rent: 5500, food: 4500, safety: 7.2 },
-  "Kaziranga": { rent: 5000, food: 4200, safety: 7.5 },
+// Real accommodation costs per night (INR) from travel_cost.csv data
+// Format: { budget: [min, max], midRange: [min, max], luxury: [min, max] }
+const ACCOMMODATION_DATA: Record<string, { budget: [number, number]; midRange: [number, number]; luxury: [number, number] }> = {
+  "Manali": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Leh Ladakh": { budget: [700, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Leh": { budget: [700, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Ladakh": { budget: [700, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Coorg": { budget: [800, 2500], midRange: [3000, 6000], luxury: [7000, 18000] },
+  "Andaman": { budget: [1000, 3000], midRange: [4000, 8000], luxury: [10000, 25000] },
+  "Lakshadweep": { budget: [2000, 5000], midRange: [6000, 15000], luxury: [18000, 40000] },
+  "Goa": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 20000] },
+  "Udaipur": { budget: [800, 2500], midRange: [3000, 8000], luxury: [10000, 30000] },
+  "Srinagar": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 18000] },
+  "Gangtok": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 12000] },
+  "Munnar": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 18000] },
+  "Varkala": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Mcleodganj": { budget: [500, 2000], midRange: [2000, 4000], luxury: [5000, 12000] },
+  "Rishikesh": { budget: [400, 1500], midRange: [2000, 4000], luxury: [5000, 12000] },
+  "Alleppey": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 20000] },
+  "Darjeeling": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Nainital": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Shimla": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 18000] },
+  "Ooty": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Jaipur": { budget: [500, 2500], midRange: [3000, 8000], luxury: [10000, 25000] },
+  "Lonavala": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 18000] },
+  "Mussoorie": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Kodaikanal": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Varanasi": { budget: [400, 1500], midRange: [2000, 5000], luxury: [6000, 15000] },
+  "Mumbai": { budget: [1200, 3500], midRange: [4000, 8000], luxury: [12000, 35000] },
+  "Agra": { budget: [500, 2500], midRange: [3000, 6000], luxury: [8000, 20000] },
+  "Kolkata": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 18000] },
+  "Jodhpur": { budget: [500, 2500], midRange: [3000, 8000], luxury: [10000, 25000] },
+  "Bangalore": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 20000] },
+  "Bengaluru": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 20000] },
+  "Amritsar": { budget: [400, 1500], midRange: [2000, 4000], luxury: [5000, 12000] },
+  "Delhi": { budget: [600, 2500], midRange: [3000, 7000], luxury: [10000, 30000] },
+  "Jaisalmer": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 20000] },
+  "Hyderabad": { budget: [600, 2000], midRange: [2500, 5000], luxury: [7000, 18000] },
+  "Pondicherry": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Chennai": { budget: [600, 2000], midRange: [2500, 5000], luxury: [7000, 18000] },
+  "Haridwar": { budget: [400, 1500], midRange: [2000, 4000], luxury: [5000, 12000] },
+  "Pune": { budget: [800, 2500], midRange: [3000, 6000], luxury: [8000, 18000] },
+  "Kochi": { budget: [600, 2000], midRange: [2500, 5000], luxury: [7000, 18000] },
+  "Kerala": { budget: [800, 2500], midRange: [3500, 7000], luxury: [10000, 25000] },
+  "Mysore": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Mysuru": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 15000] },
+  "Chandigarh": { budget: [600, 2000], midRange: [2500, 5000], luxury: [7000, 15000] },
+  "Hampi": { budget: [400, 1500], midRange: [1500, 3000], luxury: [4000, 10000] },
+  "Pushkar": { budget: [400, 1500], midRange: [2000, 4000], luxury: [5000, 12000] },
+  "Kasol": { budget: [400, 1500], midRange: [2000, 4000], luxury: [5000, 10000] },
+  "Dharamshala": { budget: [500, 2000], midRange: [2500, 5000], luxury: [6000, 12000] },
+  "default": { budget: [500, 2000], midRange: [2500, 5500], luxury: [7000, 18000] },
 };
 
-// Accommodation costs per night by travel style (INR)
-const ACCOMMODATION_COSTS: Record<string, { budget: { min: number; max: number }; midRange: { min: number; max: number }; luxury: { min: number; max: number } }> = {
-  "Manali": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 5000 }, luxury: { min: 5000, max: 15000 } },
-  "Leh Ladakh": { budget: { min: 700, max: 2000 }, midRange: { min: 2000, max: 5000 }, luxury: { min: 5000, max: 15000 } },
-  "Coorg": { budget: { min: 800, max: 2500 }, midRange: { min: 2500, max: 6000 }, luxury: { min: 6000, max: 18000 } },
-  "Andaman": { budget: { min: 1000, max: 3000 }, midRange: { min: 3000, max: 8000 }, luxury: { min: 8000, max: 25000 } },
-  "Lakshadweep": { budget: { min: 2000, max: 5000 }, midRange: { min: 5000, max: 15000 }, luxury: { min: 15000, max: 40000 } },
-  "Goa": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 6000 }, luxury: { min: 6000, max: 20000 } },
-  "Udaipur": { budget: { min: 800, max: 2500 }, midRange: { min: 2500, max: 8000 }, luxury: { min: 8000, max: 30000 } },
-  "Srinagar": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 5000 }, luxury: { min: 5000, max: 18000 } },
-  "Gangtok": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 5000 }, luxury: { min: 5000, max: 12000 } },
-  "Munnar": { budget: { min: 800, max: 2500 }, midRange: { min: 2500, max: 6000 }, luxury: { min: 6000, max: 18000 } },
-  "Rishikesh": { budget: { min: 400, max: 1500 }, midRange: { min: 1500, max: 4000 }, luxury: { min: 4000, max: 12000 } },
-  "Darjeeling": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 5000 }, luxury: { min: 5000, max: 15000 } },
-  "Shimla": { budget: { min: 800, max: 2500 }, midRange: { min: 2500, max: 6000 }, luxury: { min: 6000, max: 18000 } },
-  "Jaipur": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 6000 }, luxury: { min: 6000, max: 25000 } },
-  "Mumbai": { budget: { min: 1000, max: 3000 }, midRange: { min: 3000, max: 8000 }, luxury: { min: 8000, max: 30000 } },
-  "Delhi": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 6000 }, luxury: { min: 6000, max: 25000 } },
-  "Agra": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 6000 }, luxury: { min: 6000, max: 20000 } },
-  "Kolkata": { budget: { min: 800, max: 2500 }, midRange: { min: 2500, max: 6000 }, luxury: { min: 6000, max: 18000 } },
-  "Varanasi": { budget: { min: 500, max: 1800 }, midRange: { min: 1800, max: 5000 }, luxury: { min: 5000, max: 15000 } },
-  "Kerala": { budget: { min: 800, max: 2500 }, midRange: { min: 2500, max: 7000 }, luxury: { min: 7000, max: 25000 } },
-  "default": { budget: { min: 500, max: 2000 }, midRange: { min: 2000, max: 6000 }, luxury: { min: 6000, max: 18000 } },
+// Daily food costs per person (INR) - actual travel costs not living costs
+const FOOD_COSTS = {
+  budget: { min: 300, max: 600 },      // Street food, dhabas, basic meals
+  midRange: { min: 800, max: 1500 },   // Restaurants, cafes, mixed dining
+  luxury: { min: 2000, max: 4000 },    // Fine dining, hotel restaurants
 };
 
-// Transport costs per day (INR)
-const TRANSPORT_COSTS = {
-  budget: { local: 150, intercity: 500 },
-  midRange: { local: 400, intercity: 1500 },
-  luxury: { local: 1500, intercity: 5000 },
+// Daily local transport per person (INR)
+const LOCAL_TRANSPORT = {
+  budget: { min: 100, max: 250 },      // Public buses, shared autos
+  midRange: { min: 400, max: 800 },    // Mix of Ola/Uber and autos
+  luxury: { min: 1500, max: 3000 },    // Private car, AC cabs
 };
 
-// Activity costs per day (INR)
-const ACTIVITY_COSTS = {
-  budget: 300,
-  midRange: 800,
-  luxury: 2500,
+// Inter-city transport (one-way, INR)
+const INTERCITY_TRANSPORT = {
+  budget: { train: 500, bus: 400 },
+  midRange: { train: 1500, flight: 4000 },
+  luxury: { train: 3000, flight: 8000 },
 };
 
-// Food costs per day (INR)
-const FOOD_MULTIPLIER = {
-  budget: 0.5,    // Street food, local eateries
-  midRange: 1.0,  // Restaurants, cafes
-  luxury: 2.5,    // Fine dining, hotels
+// Daily activities per person (INR)
+const ACTIVITIES = {
+  budget: { min: 200, max: 400 },      // Free attractions, basic entry fees
+  midRange: { min: 600, max: 1200 },   // Guided tours, major attractions
+  luxury: { min: 2000, max: 4000 },    // Private tours, premium experiences
 };
 
-function getCityData(destination: string) {
-  const normalizedDest = destination.trim();
-  return CITY_COSTS[normalizedDest] || CITY_COSTS["default"] || { rent: 8000, food: 5000, safety: 6.0 };
+// City-specific cost multipliers (based on india_cost_quality_dataset.csv)
+const CITY_MULTIPLIERS: Record<string, number> = {
+  "Mumbai": 1.4,
+  "Delhi": 1.2,
+  "Bengaluru": 1.15,
+  "Bangalore": 1.15,
+  "Pune": 1.2,
+  "Chennai": 1.1,
+  "Hyderabad": 1.05,
+  "Kolkata": 1.0,
+  "Goa": 1.25,
+  "Jaipur": 0.9,
+  "Udaipur": 0.95,
+  "Kerala": 1.1,
+  "Manali": 0.85,
+  "Shimla": 0.9,
+  "Rishikesh": 0.75,
+  "Varanasi": 0.7,
+  "Agra": 0.85,
+  "Leh Ladakh": 1.3,
+  "Andaman": 1.35,
+  "Lakshadweep": 1.5,
+  "default": 1.0,
+};
+
+// Safety scores from data
+const SAFETY_SCORES: Record<string, number> = {
+  "Mumbai": 2.7,
+  "Delhi": 2.6,
+  "Bengaluru": 6.7,
+  "Hyderabad": 7.7,
+  "Ahmedabad": 7.9,
+  "Chennai": 4.0,
+  "Kolkata": 4.7,
+  "Pune": 6.0,
+  "Jaipur": 6.7,
+  "Goa": 6.5,
+  "Varanasi": 3.3,
+  "Agra": 7.6,
+  "Udaipur": 3.2,
+  "Amritsar": 8.2,
+  "Srinagar": 5.1,
+  "Gangtok": 8.7,
+  "Rishikesh": 6.5,
+  "default": 6.0,
+};
+
+function getAccommodationData(destination: string) {
+  return ACCOMMODATION_DATA[destination] || ACCOMMODATION_DATA["default"];
 }
 
-function getAccommodationCosts(destination: string) {
-  const normalizedDest = destination.trim();
-  return ACCOMMODATION_COSTS[normalizedDest] || ACCOMMODATION_COSTS["default"];
+function getCityMultiplier(destination: string): number {
+  return CITY_MULTIPLIERS[destination] || CITY_MULTIPLIERS["default"];
+}
+
+function getSafetyScore(destination: string): number {
+  return SAFETY_SCORES[destination] || SAFETY_SCORES["default"];
+}
+
+function getAverage(min: number, max: number): number {
+  return Math.round((min + max) / 2);
 }
 
 function calculateBudget(
@@ -124,33 +157,45 @@ function calculateBudget(
   travelers: number,
   travelStyle: "budget" | "mid-range" | "luxury"
 ) {
-  const cityData = getCityData(destination);
-  const accommodationData = getAccommodationCosts(destination);
-  
   const styleKey = travelStyle === "mid-range" ? "midRange" : travelStyle;
-  
-  // Calculate daily food cost (monthly cost / 30, adjusted for style)
-  const dailyFoodCost = (cityData.food / 30) * FOOD_MULTIPLIER[styleKey];
-  const totalFood = Math.round(dailyFoodCost * days * travelers);
-  
-  // Calculate accommodation (average of min/max for the style)
+  const multiplier = getCityMultiplier(destination);
+  const accommodationData = getAccommodationData(destination);
+
+  // Accommodation (per room, assuming 2 travelers share)
+  const roomsNeeded = Math.ceil(travelers / 2);
   const accRange = accommodationData[styleKey];
-  const avgAccommodation = (accRange.min + accRange.max) / 2;
-  const totalAccommodation = Math.round(avgAccommodation * days);
-  
-  // Calculate transport
-  const transportCosts = TRANSPORT_COSTS[styleKey];
-  const totalTransport = Math.round((transportCosts.local * days + transportCosts.intercity * 2) * travelers);
-  
-  // Calculate activities
-  const totalActivities = Math.round(ACTIVITY_COSTS[styleKey] * days * travelers);
-  
-  // Miscellaneous (10-15% of subtotal)
-  const subtotal = totalFood + totalAccommodation + totalTransport + totalActivities;
+  const dailyAccommodation = getAverage(accRange[0], accRange[1]) * multiplier;
+  const totalAccommodation = Math.round(dailyAccommodation * days * roomsNeeded);
+
+  // Food (per person per day)
+  const foodRange = FOOD_COSTS[styleKey];
+  const dailyFood = getAverage(foodRange.min, foodRange.max) * multiplier;
+  const totalFood = Math.round(dailyFood * days * travelers);
+
+  // Local Transport (per person per day)
+  const localTransportRange = LOCAL_TRANSPORT[styleKey];
+  const dailyLocalTransport = getAverage(localTransportRange.min, localTransportRange.max) * multiplier;
+  const totalLocalTransport = Math.round(dailyLocalTransport * days * travelers);
+
+  // Inter-city transport (round trip)
+  const intercityData = INTERCITY_TRANSPORT[styleKey];
+  const intercityMode = styleKey === "luxury" ? "flight" : (styleKey === "midRange" ? "train" : "train");
+  const intercityCost = intercityData[intercityMode as keyof typeof intercityData] || intercityData.train;
+  const totalIntercity = Math.round(intercityCost * 2 * travelers); // Round trip
+
+  const totalTransport = totalLocalTransport + totalIntercity;
+
+  // Activities (per person per day)
+  const activitiesRange = ACTIVITIES[styleKey];
+  const dailyActivities = getAverage(activitiesRange.min, activitiesRange.max) * multiplier;
+  const totalActivities = Math.round(dailyActivities * days * travelers);
+
+  // Miscellaneous (12% of subtotal for tips, emergencies, souvenirs)
+  const subtotal = totalAccommodation + totalFood + totalTransport + totalActivities;
   const miscellaneous = Math.round(subtotal * 0.12);
-  
+
   const total = subtotal + miscellaneous;
-  
+
   return {
     transport: totalTransport,
     accommodation: totalAccommodation,
@@ -158,38 +203,75 @@ function calculateBudget(
     activities: totalActivities,
     miscellaneous,
     total,
-    safetyScore: cityData.safety,
+    perPerson: Math.round(total / travelers),
+    perDay: Math.round(total / days),
   };
 }
 
-function generateTips(destination: string, travelStyle: string, budget: ReturnType<typeof calculateBudget>) {
+function generateTips(destination: string, travelStyle: string, days: number): string[] {
   const tips: string[] = [];
-  
+  const safetyScore = getSafetyScore(destination);
+
   if (travelStyle === "budget") {
-    tips.push(`Stay in hostels or guesthouses to save up to 60% on accommodation in ${destination}`);
-    tips.push("Use public transport like buses and shared autos instead of private cabs");
-    tips.push("Eat at local dhabas and street food stalls for authentic and affordable meals");
-    tips.push("Book train tickets in advance on IRCTC for best prices");
-    tips.push("Visit attractions during off-peak hours to avoid crowds and sometimes get discounts");
+    tips.push(`Book hostels or guesthouses in ${destination} - save up to 60% on accommodation`);
+    tips.push("Use Sleeper class trains and state transport buses for intercity travel");
+    tips.push("Eat at local dhabas and street food stalls for authentic and affordable meals (₹50-150/meal)");
+    tips.push("Book IRCTC Tatkal tickets 1 day before travel for last-minute budget options");
+    tips.push("Download offline maps and use public WiFi to save on mobile data");
   } else if (travelStyle === "mid-range") {
-    tips.push(`Book 3-star hotels through apps like MakeMyTrip or Goibibo for deals in ${destination}`);
-    tips.push("Mix local transport with occasional Ola/Uber for convenience");
-    tips.push("Try a mix of restaurant meals and local street food for the best experience");
+    tips.push(`Book 3-star hotels through MakeMyTrip, Goibibo, or OYO for deals in ${destination}`);
+    tips.push("Mix Ola/Uber rides with local autos for cost-effective city transport");
+    tips.push("Try local restaurants for lunch and hotel dining for dinner");
     tips.push("Book combo tickets for multiple attractions where available");
-    tips.push("Consider traveling during shoulder season for better rates");
+    tips.push("Travel during weekdays for lower hotel rates (up to 30% savings)");
   } else {
-    tips.push(`Book heritage hotels or luxury resorts in ${destination} for an authentic experience`);
-    tips.push("Hire a private car with driver for comfortable sightseeing");
-    tips.push("Pre-book fine dining experiences at top-rated restaurants");
-    tips.push("Consider private tours for personalized experiences at monuments");
-    tips.push("Book business class trains or flights for long-distance travel");
+    tips.push(`Book heritage hotels or 5-star properties in ${destination} for authentic luxury`);
+    tips.push("Hire a private car with driver for comfortable day trips (₹2500-4000/day)");
+    tips.push("Pre-book fine dining experiences and spa treatments");
+    tips.push("Consider business class trains or premium economy flights");
+    tips.push("Book private guided tours for personalized monument visits");
   }
-  
-  if (budget.safetyScore < 5) {
-    tips.push(`Note: Be extra cautious in ${destination} - keep valuables secure and avoid isolated areas at night`);
+
+  if (safetyScore < 5) {
+    tips.push(`⚠️ ${destination} safety tip: Keep valuables secure and avoid isolated areas after dark`);
   }
-  
-  return tips;
+
+  if (days >= 7) {
+    tips.push("Extended trip tip: Negotiate weekly rates at hotels for 15-20% discount");
+  }
+
+  return tips.slice(0, 6);
+}
+
+function generateDayByDay(destination: string, days: number, travelStyle: string): string[] {
+  const dayPlan: string[] = [];
+
+  const attractions: Record<string, string[]> = {
+    "Delhi": ["Red Fort & Chandni Chowk", "Humayun's Tomb & Lodhi Gardens", "Qutub Minar & Mehrauli", "India Gate & Rashtrapati Bhavan", "Akshardham Temple", "Connaught Place shopping"],
+    "Mumbai": ["Gateway of India & Colaba", "Elephanta Caves (ferry)", "Marine Drive & Haji Ali", "Sanjay Gandhi National Park", "Bandra & Bandstand", "CST & Crawford Market"],
+    "Jaipur": ["Amber Fort & Jal Mahal", "City Palace & Hawa Mahal", "Nahargarh Fort sunset", "Jantar Mantar & local markets", "Albert Hall Museum", "Johari Bazaar shopping"],
+    "Goa": ["North Goa beaches", "Old Goa churches", "South Goa beaches", "Dudhsagar Falls", "Flea markets & nightlife", "Water sports & cruises"],
+    "Kerala": ["Munnar tea gardens", "Alleppey houseboat", "Kochi Fort & backwaters", "Thekkady wildlife", "Varkala beach", "Kovalam & spa"],
+    "Varanasi": ["Ganga Aarti at Dashashwamedh", "Boat ride at sunrise", "Sarnath Buddhist site", "Temple walk & old city", "Ramnagar Fort", "Silk shopping"],
+    "Agra": ["Taj Mahal at sunrise", "Agra Fort", "Fatehpur Sikri day trip", "Mehtab Bagh sunset", "Local marble craft", "Kinari Bazaar"],
+    "Udaipur": ["City Palace complex", "Lake Pichola boat ride", "Jagdish Temple & old city", "Sajjangarh Monsoon Palace", "Vintage car museum", "Local crafts shopping"],
+    "Manali": ["Solang Valley adventure", "Rohtang Pass excursion", "Old Manali & cafes", "Hadimba Temple & Van Vihar", "Vashisht hot springs", "Mall Road shopping"],
+    "default": ["Local sightseeing", "Main attractions", "Cultural experiences", "Local markets", "Day trip to nearby places", "Leisure & shopping"],
+  };
+
+  const destAttractions = attractions[destination] || attractions["default"];
+
+  for (let i = 0; i < days; i++) {
+    if (i === 0) {
+      dayPlan.push(`Day ${i + 1}: Arrive, check-in, and explore ${destAttractions[0] || "local area"}`);
+    } else if (i === days - 1) {
+      dayPlan.push(`Day ${i + 1}: ${destAttractions[i % destAttractions.length] || "Final shopping"} and departure`);
+    } else {
+      dayPlan.push(`Day ${i + 1}: ${destAttractions[i % destAttractions.length] || `Explore local attractions`}`);
+    }
+  }
+
+  return dayPlan;
 }
 
 serve(async (req) => {
@@ -199,6 +281,8 @@ serve(async (req) => {
 
   try {
     const { destination, days, travelers, travelStyle } = await req.json();
+
+    console.log(`Budget calculation: ${destination}, ${days} days, ${travelers} travelers, ${travelStyle} style`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -212,12 +296,15 @@ serve(async (req) => {
       travelers,
       travelStyle as "budget" | "mid-range" | "luxury"
     );
-    
-    const tips = generateTips(destination, travelStyle, calculatedBudget);
 
-    const systemPrompt = `You are an expert Indian travel budget planner. You've been provided with accurate budget calculations based on real 2024-2025 data.
+    const tips = generateTips(destination, travelStyle, days);
+    const dayByDay = generateDayByDay(destination, days, travelStyle);
 
-The pre-calculated budget for ${destination} (${days} days, ${travelers} travelers, ${travelStyle} style) is:
+    console.log("Calculated budget:", calculatedBudget);
+
+    const systemPrompt = `You are an Indian travel budget assistant. Return ONLY a valid JSON object with no markdown or extra text.
+
+Pre-calculated budget for ${destination} (${days} days, ${travelers} travelers, ${travelStyle}):
 - Transport: ₹${calculatedBudget.transport.toLocaleString("en-IN")}
 - Accommodation: ₹${calculatedBudget.accommodation.toLocaleString("en-IN")}
 - Food: ₹${calculatedBudget.food.toLocaleString("en-IN")}
@@ -225,7 +312,7 @@ The pre-calculated budget for ${destination} (${days} days, ${travelers} travele
 - Miscellaneous: ₹${calculatedBudget.miscellaneous.toLocaleString("en-IN")}
 - Total: ₹${calculatedBudget.total.toLocaleString("en-IN")}
 
-IMPORTANT: You MUST respond with ONLY a valid JSON object using these EXACT calculated values. The JSON must follow this structure:
+Return this EXACT JSON:
 {
   "transport": ${calculatedBudget.transport},
   "accommodation": ${calculatedBudget.accommodation},
@@ -234,12 +321,10 @@ IMPORTANT: You MUST respond with ONLY a valid JSON object using these EXACT calc
   "miscellaneous": ${calculatedBudget.miscellaneous},
   "total": ${calculatedBudget.total},
   "tips": ${JSON.stringify(tips)},
-  "dayByDay": ["Day 1: Arrive and explore local area...", "Day 2: Visit main attractions..."]
-}
+  "dayByDay": ${JSON.stringify(dayByDay)}
+}`;
 
-Add a brief dayByDay array with ${days} entries describing suggested activities for each day in ${destination}. Keep each day description under 100 characters.`;
-
-    const userPrompt = `Generate the budget JSON for ${destination}, India trip with the pre-calculated values. Add realistic day-by-day suggestions for ${days} days of ${travelStyle} travel.`;
+    const userPrompt = `Generate the budget JSON for ${destination}. Use the exact pre-calculated values.`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",

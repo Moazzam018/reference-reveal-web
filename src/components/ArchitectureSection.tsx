@@ -35,7 +35,7 @@ const ArchitectureSection = () => {
 
   return (
     <section
-      id="about"
+      id="architecture"
       className="py-24 bg-secondary text-secondary-foreground relative overflow-hidden"
       ref={ref}
     >

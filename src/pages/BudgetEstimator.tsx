@@ -58,6 +58,7 @@ const BudgetEstimator = () => {
   const { toast } = useToast();
   const tripData = (location.state as TripData) || {};
 
+  const [origin, setOrigin] = useState(tripData.origin || "");
   const [destination, setDestination] = useState(tripData.destination || "");
   const [days, setDays] = useState("5");
   const [travelers, setTravelers] = useState(tripData.travelers || "2");
@@ -123,6 +124,15 @@ const BudgetEstimator = () => {
       return;
     }
 
+    if (!origin) {
+      toast({
+        title: "Missing origin",
+        description: "Please select where you're starting from",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     setBudget(null);
     setStreamedResponse("");
@@ -137,6 +147,7 @@ const BudgetEstimator = () => {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
+            origin: destinations.find((d) => d.id === origin)?.name || origin,
             destination: destinations.find((d) => d.id === destination)?.name || destination,
             days: parseInt(days),
             travelers: parseInt(travelers),
@@ -229,8 +240,51 @@ const BudgetEstimator = () => {
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6">
+            {/* Origin */}
             <div className="space-y-2">
-              <Label>Destination</Label>
+              <Label className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-green-500/10 text-green-600 flex items-center justify-center text-[10px] font-bold">A</span>
+                Starting From
+              </Label>
+              <Select value={origin} onValueChange={setOrigin}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Where are you starting?" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Major Cities</div>
+                  {destinations.filter(d => d.category === "city").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Beaches & Backwaters</div>
+                  {destinations.filter(d => d.category === "beach").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Hill Stations</div>
+                  {destinations.filter(d => d.category === "hill").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Adventure</div>
+                  {destinations.filter(d => d.category === "adventure").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Heritage</div>
+                  {destinations.filter(d => d.category === "heritage").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Spiritual</div>
+                  {destinations.filter(d => d.category === "spiritual").map((dest) => (
+                    <SelectItem key={dest.id} value={dest.id}>{dest.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Destination */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center text-[10px] font-bold">B</span>
+                Destination
+              </Label>
               <Select value={destination} onValueChange={setDestination}>
                 <SelectTrigger>
                   <SelectValue placeholder="Where are you going?" />

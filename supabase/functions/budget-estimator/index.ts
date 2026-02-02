@@ -74,11 +74,23 @@ const LOCAL_TRANSPORT = {
   luxury: { min: 1500, max: 3000 },    // Private car, AC cabs
 };
 
-// Inter-city transport (one-way, INR)
+// Inter-city transport base costs (one-way, INR) - varies by distance
 const INTERCITY_TRANSPORT = {
   budget: { train: 500, bus: 400 },
   midRange: { train: 1500, flight: 4000 },
   luxury: { train: 3000, flight: 8000 },
+};
+
+// Route-based transport multipliers (approximate distance tiers)
+const ROUTE_DISTANCES: Record<string, Record<string, number>> = {
+  "Delhi": { "Mumbai": 1.8, "Jaipur": 0.8, "Agra": 0.6, "Varanasi": 1.2, "Goa": 2.2, "Kerala": 2.5, "Manali": 1.0, "Shimla": 0.8, "Udaipur": 1.1, "Amritsar": 0.9, "Rishikesh": 0.7, "Leh Ladakh": 2.0 },
+  "Mumbai": { "Delhi": 1.8, "Goa": 0.9, "Pune": 0.5, "Jaipur": 1.5, "Bangalore": 1.4, "Hyderabad": 1.1, "Kerala": 1.8, "Kolkata": 2.2 },
+  "Bangalore": { "Mumbai": 1.4, "Kerala": 0.8, "Chennai": 0.6, "Goa": 1.0, "Hyderabad": 0.9, "Mysore": 0.4, "Coorg": 0.5, "Hampi": 0.6 },
+  "Kolkata": { "Delhi": 2.0, "Darjeeling": 0.9, "Gangtok": 1.0, "Varanasi": 1.0, "Chennai": 2.0, "Mumbai": 2.2 },
+  "Chennai": { "Bangalore": 0.6, "Kerala": 1.0, "Pondicherry": 0.4, "Hyderabad": 0.9, "Mumbai": 1.8, "Ooty": 0.8 },
+  "Hyderabad": { "Mumbai": 1.1, "Bangalore": 0.9, "Chennai": 0.9, "Goa": 1.3, "Delhi": 1.8 },
+  "Jaipur": { "Delhi": 0.8, "Udaipur": 0.7, "Jodhpur": 0.6, "Jaisalmer": 0.9, "Agra": 0.7, "Pushkar": 0.4 },
+  "default": { "default": 1.0 },
 };
 
 // Daily activities per person (INR)
@@ -151,7 +163,13 @@ function getAverage(min: number, max: number): number {
   return Math.round((min + max) / 2);
 }
 
+function getRouteMultiplier(origin: string, destination: string): number {
+  const originRoutes = ROUTE_DISTANCES[origin] || ROUTE_DISTANCES["default"];
+  return originRoutes[destination] || originRoutes["default"] || 1.0;
+}
+
 function calculateBudget(
+  origin: string,
   destination: string,
   days: number,
   travelers: number,
@@ -159,6 +177,7 @@ function calculateBudget(
 ) {
   const styleKey = travelStyle === "mid-range" ? "midRange" : travelStyle;
   const multiplier = getCityMultiplier(destination);
+  const routeMultiplier = getRouteMultiplier(origin, destination);
   const accommodationData = getAccommodationData(destination);
 
   // Accommodation (per room, assuming 2 travelers share)
@@ -177,10 +196,11 @@ function calculateBudget(
   const dailyLocalTransport = getAverage(localTransportRange.min, localTransportRange.max) * multiplier;
   const totalLocalTransport = Math.round(dailyLocalTransport * days * travelers);
 
-  // Inter-city transport (round trip)
+  // Inter-city transport (round trip) - now considers route distance
   const intercityData = INTERCITY_TRANSPORT[styleKey];
   const intercityMode = styleKey === "luxury" ? "flight" : (styleKey === "midRange" ? "train" : "train");
-  const intercityCost = intercityData[intercityMode as keyof typeof intercityData] || intercityData.train;
+  const baseCost = intercityData[intercityMode as keyof typeof intercityData] || intercityData.train;
+  const intercityCost = Math.round(baseCost * routeMultiplier);
   const totalIntercity = Math.round(intercityCost * 2 * travelers); // Round trip
 
   const totalTransport = totalLocalTransport + totalIntercity;
@@ -280,9 +300,10 @@ serve(async (req) => {
   }
 
   try {
-    const { destination, days, travelers, travelStyle } = await req.json();
+    const { origin, destination, days, travelers, travelStyle } = await req.json();
 
-    console.log(`Budget calculation: ${destination}, ${days} days, ${travelers} travelers, ${travelStyle} style`);
+    const originCity = origin || "Delhi"; // Default to Delhi if not provided
+    console.log(`Budget calculation: ${originCity} → ${destination}, ${days} days, ${travelers} travelers, ${travelStyle} style`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -291,6 +312,7 @@ serve(async (req) => {
 
     // Calculate budget using real data
     const calculatedBudget = calculateBudget(
+      originCity,
       destination,
       days,
       travelers,
@@ -304,8 +326,8 @@ serve(async (req) => {
 
     const systemPrompt = `You are an Indian travel budget assistant. Return ONLY a valid JSON object with no markdown or extra text.
 
-Pre-calculated budget for ${destination} (${days} days, ${travelers} travelers, ${travelStyle}):
-- Transport: ₹${calculatedBudget.transport.toLocaleString("en-IN")}
+Pre-calculated budget for trip from ${originCity} to ${destination} (${days} days, ${travelers} travelers, ${travelStyle}):
+- Transport: ₹${calculatedBudget.transport.toLocaleString("en-IN")} (includes ${originCity}→${destination} round trip)
 - Accommodation: ₹${calculatedBudget.accommodation.toLocaleString("en-IN")}
 - Food: ₹${calculatedBudget.food.toLocaleString("en-IN")}
 - Activities: ₹${calculatedBudget.activities.toLocaleString("en-IN")}
@@ -324,7 +346,7 @@ Return this EXACT JSON:
   "dayByDay": ${JSON.stringify(dayByDay)}
 }`;
 
-    const userPrompt = `Generate the budget JSON for ${destination}. Use the exact pre-calculated values.`;
+    const userPrompt = `Generate the budget JSON for trip from ${originCity} to ${destination}. Use the exact pre-calculated values.`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
